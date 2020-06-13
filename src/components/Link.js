@@ -1,10 +1,10 @@
 import React from "react";
 
-export const Link = () => {
+export const Link = ({ link }) => {
   return (
     <div>
       <div>
-        {this.props.link.description} ({this.props.link.url})
+        {link.description} ({link.url})
       </div>
     </div>
   )
