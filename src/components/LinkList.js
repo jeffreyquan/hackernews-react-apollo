@@ -1,10 +1,9 @@
 import React from "react";
-import gql from "graphql-tag";
-import { Query } from "react-apollo";
+import { useQuery, gql } from "@apollo/client";
 import { Link } from "./Link";
 
-const FEED_QUERY = gql`
-  {
+const GET_FEED = gql`
+  query GetFeed {
     feed {
       links {
         id
@@ -18,20 +17,14 @@ const FEED_QUERY = gql`
 
 export const LinkedList = () => {
 
+  const { loading, error, data } = useQuery(GET_FEED);
+
+  if (loading) return <div>Fetching</div>;
+  if (error) return <div>Error</div>;
+
   return (
-    <Query query={FEED_QUERY}>
-      {({ loading, error, data }) => {
-        if (loading) return <div>Fetching</div>
-        if (error) return <div>Error</div>
-
-        const linkstoRender = data.feed.links;
-
-        return (
-          <div>
-            {linkstoRender.map(link => <Link key={link.id} link={link} />)}
-          </div>
-        )
-      }}
-    </Query>
+    <div>
+      {data.feed.links.map(link => <Link key={link.id} link={link} />)}
+    </div> 
   );
 }
