@@ -1,5 +1,6 @@
 import React from "react";
-import { useQuery, gql } from "@apollo/client";
+import gql from "graphql-tag";
+import { useQuery } from "@apollo/react-hooks";
 import { Link } from "./Link";
 
 const GET_FEED = gql`
