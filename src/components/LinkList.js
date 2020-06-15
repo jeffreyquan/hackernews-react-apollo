@@ -16,7 +16,7 @@ const GET_FEED = gql`
   }
 `;
 
-export const LinkedList = () => {
+export const LinkList = () => {
 
   const { loading, error, data } = useQuery(GET_FEED);
 
