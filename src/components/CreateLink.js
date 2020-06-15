@@ -13,12 +13,15 @@ const ADD_POST = gql`
   }
 `;
 
-export const CreateLink = () => {
-  const [addPost, { data }] = useMutation(ADD_POST);
+export const CreateLink = (props) => {
+  const [addPost, { data }] = useMutation(ADD_POST, {
+    onCompleted: 
+      () => props.history.push("/")
+  });
   const [state, setState] = useState({
     description: '',
     url: ''
-  })
+  });
 
   const handleClick = (e) => {
     addPost({
