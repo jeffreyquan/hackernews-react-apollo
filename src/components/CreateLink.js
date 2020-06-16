@@ -14,7 +14,7 @@ const ADD_POST = gql`
 `;
 
 export const CreateLink = (props) => {
-  const [addPost, { data }] = useMutation(ADD_POST, {
+  const [addPost] = useMutation(ADD_POST, {
     onCompleted: 
       () => props.history.push("/")
   });
