@@ -1,7 +1,25 @@
 import React, { useState } from "react";
+import { useMutation } from "@apollo/react-hooks";
+import gql from "graphql-tag";
 import { AUTH_TOKEN } from "../constants";
 
-export const Login = () => {
+const SIGNUP_MUTATION = gql`
+  mutation SignupMutation($email: String!, $password: String!, $name: String!) {
+    signup(email: $email, password: $password, name: $name) {
+      token
+    }
+  }
+`;
+
+const LOGIN_MUTATION = gql`
+  mutation LoginMutation($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
+      token
+    }
+  }
+`;
+
+export const Login = props => {
   
   const [state, setState] = useState({
     login: true,
@@ -10,15 +28,49 @@ export const Login = () => {
     name: ''
   })
 
-  const confirm = async () => {
+   const saveUserData = (token) => {
+     localStorage.setItem(AUTH_TOKEN, token);
+   };
 
-  }
-
-  const saveUserData = token => {
-    localStorage.setItem(AUTH_TOKEN, token)
+  const confirm = async data => {
+    const { token } = data;
+    saveUserData(token);
+    props.history.push('/');
   };
 
+  const [loginMutation] = useMutation(LOGIN_MUTATION, {
+    onCompleted({ login }) {
+      confirm(login);
+    }
+  });
+
+  const [signupMutation] = useMutation(SIGNUP_MUTATION, {
+    onCompleted({ signup }) {
+      confirm(signup);
+    },
+  });
+
   const { login, email, password, name } = state;
+
+  const handleClick = () => {
+    if (login) {
+      loginMutation({
+        variables: {
+          email,
+          password,
+          name
+        }
+      })
+    } else {
+      signupMutation({
+        variables: {
+          email,
+          password,
+          name,
+        },
+      });
+    }
+  }
 
   return (
     <div>
@@ -46,7 +98,7 @@ export const Login = () => {
         />
       </div>
       <div className="flex mt3">
-        <div className="pointer mr2 button" onClick={() => confirm()}>
+        <div className="pointer mr2 button" onClick={handleClick}>
           {login ? "login" : "create account"}
         </div>
         <div
