@@ -3,7 +3,7 @@ import gql from "graphql-tag";
 import { useQuery } from "@apollo/react-hooks";
 import { Link } from "./Link";
 
-const GET_FEED = gql`
+export const GET_FEED = gql`
   query GetFeed {
     feed {
       links {
@@ -33,9 +33,25 @@ export const LinkList = () => {
   if (loading) return <div>Fetching</div>;
   if (error) return <div>Error</div>;
 
+  const updateCacheAfterVote = (store, createVote, linkId) => {
+    const data = store.readQuery({ query: GET_FEED });
+
+    const votedLink = data.feed.links.find(link => link.id === linkId);
+    votedLink.votes = createVote.link.votes;
+
+    store.writeQuery({ query: GET_FEED, data });
+  }
+
   return (
     <div>
-      {data.feed.links.map((link, index) => <Link key={link.id} link={link}  index={index} />)}
-    </div> 
+      {data.feed.links.map((link, index) => (
+        <Link
+          key={link.id}
+          link={link}
+          index={index}
+          updateStoreAfterVote={updateCacheAfterVote}
+        />
+      ))}
+    </div>
   );
 }
