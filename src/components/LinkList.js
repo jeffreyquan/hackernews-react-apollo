@@ -11,6 +11,16 @@ const GET_FEED = gql`
         createdAt
         url
         description
+        postedBy {
+          id
+          name
+        }
+        votes {
+          id
+          user {
+            id
+          }
+        }
       }
     }
   }
@@ -25,7 +35,7 @@ export const LinkList = () => {
 
   return (
     <div>
-      {data.feed.links.map(link => <Link key={link.id} link={link} />)}
+      {data.feed.links.map((link, index) => <Link key={link.id} link={link}  index={index} />)}
     </div> 
   );
 }
