@@ -26,9 +26,11 @@ const VOTE_MUTATION = gql`
   }
 `;
 
-export const Link = ({ index, link }) => {
+export const Link = ({ index, link, updateStoreAfterVote }) => {
 
-  const [voteMutation] = useMutation(VOTE_MUTATION);
+  const [voteMutation] = useMutation(VOTE_MUTATION, {
+    update: (store, { data: { vote } }) => updateStoreAfterVote(store, vote, link.id)
+  });
 
   const voteForLink = () => {
     voteMutation({
