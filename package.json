@@ -11,6 +11,7 @@
     "apollo-link-context": "^1.0.20",
     "graphql": "^15.1.0",
     "react": "^16.13.1",
+    "react-apollo": "^3.1.5",
     "react-dom": "^16.13.1",
     "react-router": "^5.2.0",
     "react-router-dom": "^5.2.0",
