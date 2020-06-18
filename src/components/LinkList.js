@@ -1,11 +1,12 @@
-import React from "react";
+import React, { Fragment } from "react";
 import gql from "graphql-tag";
 import { useQuery } from "@apollo/react-hooks";
 import { Link } from "./Link";
+import { LINKS_PER_PAGE } from "../constants";
 
 export const GET_FEED = gql`
-  query GetFeed {
-    feed {
+  query GetFeed($first: Int, $skip: Int, $orderBy: LinkOrderByInput) {
+    feed(first: $first, skip: $skip, orderBy: $orderBy) {
       links {
         id
         createdAt
@@ -22,6 +23,7 @@ export const GET_FEED = gql`
           }
         }
       }
+      count
     }
   }
 `;
@@ -100,12 +102,53 @@ const subscribeToNewLinks = (subscribeToMore) => {
   });
 };
 
-export const LinkList = () => {
+export const LinkList = props => {
 
-  const { loading, error, data, subscribeToMore } = useQuery(GET_FEED);
+  const getQueryVariables = () => {
+    const isNewPage = props.location.pathname.includes('new')
+    const page = parseInt(props.match.params.page, 10)
+
+    const skip = isNewPage ? (page - 1) * LINKS_PER_PAGE : 0;
+    const first = isNewPage ? LINKS_PER_PAGE : 100;
+    const orderBy = isNewPage ? 'createdAt_DESC' : null;
+    return { first, skip, orderBy }
+  }
+
+  const getLinksToRender = data => {
+    const isNewPage = props.location.pathname.includes('new');
+
+    if (isNewPage) {
+      return data.feed.links
+    }
+
+    const rankedLinks = data.feed.links.slice();
+    rankedLinks.sort((l1, l2) => l2.votes.length - l1.votes.length);
+
+    return rankedLinks;
+}
+
+  const { loading, error, data, subscribeToMore } = useQuery(GET_FEED, {
+    variables: getQueryVariables()
+  });
 
   if (loading) return <div>Fetching</div>;
   if (error) return <div>Error</div>;
+
+  const nextPage = (data) => {
+    const page = parseInt(props.match.params.page, 10);
+    if (page <= data.feed.count / LINKS_PER_PAGE) {
+      const nextPage = page + 1;
+      props.history.push(`/new/${nextPage}`);
+    }
+  };
+
+  const previousPage = () => {
+    const page = parseInt(props.match.params.page, 10);
+    if (page > 1) {
+      const previousPage = page - 1;
+      props.history.push(`/new/${previousPage}`);
+    }
+  };
 
   const updateCacheAfterVote = (store, createVote, linkId) => {
     const data = store.readQuery({ query: GET_FEED });
@@ -117,19 +160,35 @@ export const LinkList = () => {
   }
 
   subscribeToNewLinks(subscribeToMore);
-
   subscribeToNewVotes(subscribeToMore);
 
+  const linksToRender = getLinksToRender(data);
+  const isNewPage = props.location.pathname.includes("new");
+  const pageIndex = props.match.params.page
+    ? (props.match.params.page - 1) * LINKS_PER_PAGE
+    : 0;
+
+
   return (
-    <div>
-      {data.feed.links.map((link, index) => (
+    <Fragment>
+      {linksToRender.map((link, index) => (
         <Link
           key={link.id}
           link={link}
-          index={index}
+          index={index + pageIndex}
           updateStoreAfterVote={updateCacheAfterVote}
         />
       ))}
-    </div>
+      {isNewPage && (
+        <div className="flex ml4 mv3 gray">
+          <div className="pointer mr2" onClick={previousPage}>
+            Previous
+          </div>
+          <div className="pointer" onClick={() => nextPage(data)}>
+            Next
+          </div>
+        </div>
+      )}
+    </Fragment>
   );
 }
