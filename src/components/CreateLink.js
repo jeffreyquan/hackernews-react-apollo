@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import gql from "graphql-tag";
 import { useMutation } from "@apollo/react-hooks";
 import { GET_FEED } from "./LinkList";
+import { LINKS_PER_PAGE } from "../constants";
 
 const ADD_POST = gql`
   mutation AddPost($description: String!, $url: String!) {
@@ -17,14 +18,21 @@ const ADD_POST = gql`
 export const CreateLink = (props) => {
   const [addPost] = useMutation(ADD_POST, {
     onCompleted: 
-      () => props.history.push("/"),
+      () => props.history.push("/new/1"),
     update: (store, { data: { post }}) => {
-      const data = store.readQuery({ query: GET_FEED })
-      data.feed.links.unshift(post);
-      store.writeQuery({
-        query: GET_FEED,
-        data
-      })
+       const first = LINKS_PER_PAGE;
+       const skip = 0;
+       const orderBy = "createdAt_DESC";
+       const data = store.readQuery({
+         query: GET_FEED,
+         variables: { first, skip, orderBy },
+       });
+       data.feed.links.unshift(post);
+       store.writeQuery({
+         query: GET_FEED,
+         data,
+         variables: { first, skip, orderBy },
+       });
     }
   });
   const [state, setState] = useState({
